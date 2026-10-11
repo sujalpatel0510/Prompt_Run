@@ -1,5 +1,5 @@
 import { useFinancial } from '../context/FinancialContext';
-import { SubscriptionsVault } from '../components/SubscriptionsVault';
+import { SubscriptionsVault } from '../components/features/SubscriptionsVault';
 
 export function SubscriptionsPage() {
   const {

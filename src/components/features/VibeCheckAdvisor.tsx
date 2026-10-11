@@ -9,9 +9,9 @@ import {
   Sparkles,
   MessageSquare,
 } from 'lucide-react';
-import { FinancialHealthMetrics, Transaction, Subscription } from '../types/finance';
-import { sounds } from '../utils/audio';
-import { ScrollReveal } from './ui/Animations';
+import { FinancialHealthMetrics, Transaction, Subscription } from '../../types/finance';
+import { sounds } from '../../utils/audio';
+import { ScrollReveal } from '../ui/Animations';
 
 interface VibeCheckAdvisorProps {
   currentDay: number;

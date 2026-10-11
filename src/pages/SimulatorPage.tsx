@@ -1,6 +1,6 @@
 import { useFinancial } from '../context/FinancialContext';
-import { WhatIfSimulator } from '../components/WhatIfSimulator';
-import { VibeCheckAdvisor } from '../components/VibeCheckAdvisor';
+import { WhatIfSimulator } from '../components/features/WhatIfSimulator';
+import { VibeCheckAdvisor } from '../components/features/VibeCheckAdvisor';
 
 export function SimulatorPage() {
   const {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import {
   Transaction,
   Commitment,
@@ -15,6 +15,7 @@ import {
 } from '../data/initialData';
 import { calculateMetrics, INITIAL_BUDGET } from '../utils/engine';
 import { sounds } from '../utils/audio';
+import { readStored, writeStored, removeStored, isArray, sanitizeText, sanitizeAmount, clampDay } from '../utils/storage';
 
 interface FinancialContextValue {
   // State
@@ -55,19 +56,6 @@ interface FinancialContextValue {
 
 const FinancialContext = createContext<FinancialContextValue | null>(null);
 
-function readStored<T>(key: string, fallback: T, isValid: (value: unknown) => value is T): T {
-  try {
-    const saved = localStorage.getItem(key);
-    if (saved === null) return fallback;
-    const parsed: unknown = JSON.parse(saved);
-    return isValid(parsed) ? parsed : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-const isArray = Array.isArray;
-
 export function FinancialProvider({ children }: { children: ReactNode }) {
   const [currentDay, setCurrentDay] = useState<number>(() =>
     readStored('kuberz_day', 8, (v): v is number => typeof v === 'number' && Number.isFinite(v))
@@ -93,17 +81,17 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
     readStored('kuberz_sound', true, (v): v is boolean => typeof v === 'boolean')
   );
 
+  // Debounced persistence: batch rapid state changes into one storage write.
   useEffect(() => {
-    try {
-      localStorage.setItem('kuberz_day', JSON.stringify(currentDay));
-      localStorage.setItem('kuberz_txs', JSON.stringify(transactions));
-      localStorage.setItem('kuberz_commitments', JSON.stringify(commitments));
-      localStorage.setItem('kuberz_subs', JSON.stringify(subscriptions));
-      localStorage.setItem('kuberz_goals', JSON.stringify(savingsGoals));
-      localStorage.setItem('kuberz_sound', JSON.stringify(soundEnabled));
-    } catch {
-      // Storage quota or disabled in iframe
-    }
+    const timer = window.setTimeout(() => {
+      writeStored('kuberz_day', currentDay);
+      writeStored('kuberz_txs', transactions);
+      writeStored('kuberz_commitments', commitments);
+      writeStored('kuberz_subs', subscriptions);
+      writeStored('kuberz_goals', savingsGoals);
+      writeStored('kuberz_sound', soundEnabled);
+    }, 250);
+    return () => window.clearTimeout(timer);
   }, [currentDay, transactions, commitments, subscriptions, savingsGoals, soundEnabled]);
 
   useEffect(() => {
@@ -130,10 +118,16 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
   const liquidBalance = INITIAL_BUDGET + totalIncome - totalExpense - totalSavingsLocked;
 
   const handleAddTransaction = useCallback((newTx: Omit<Transaction, 'id' | 'timestamp'>) => {
+    const amount = sanitizeAmount(newTx.amount);
+    const title = sanitizeText(newTx.title);
+    if (amount === null || !title) return;
     setTransactions(prev => [
       ...prev,
       {
         ...newTx,
+        title,
+        amount,
+        day: clampDay(newTx.day),
         id: `tx-${Date.now()}`,
         timestamp: new Date().toISOString(),
       },
@@ -173,13 +167,16 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
 
   const handleCommitDecision = useCallback((decision: SimulationParams) => {
     if (decision.type === 'expense' || decision.type === 'income') {
+      const amount = sanitizeAmount(decision.amount);
+      const title = sanitizeText(decision.title);
+      if (amount === null || !title) return;
       setTransactions(prev => [
         ...prev,
         {
           id: `tx-${Date.now()}`,
           day: currentDay,
-          title: decision.title,
-          amount: decision.amount,
+          title,
+          amount,
           type: decision.type as 'expense' | 'income',
           category: decision.category,
           timestamp: new Date().toISOString(),
@@ -217,15 +214,7 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
   }, [currentDay]);
 
   const handleResetData = useCallback(() => {
-    try {
-      localStorage.removeItem('kuberz_day');
-      localStorage.removeItem('kuberz_txs');
-      localStorage.removeItem('kuberz_commitments');
-      localStorage.removeItem('kuberz_subs');
-      localStorage.removeItem('kuberz_goals');
-    } catch {
-      // Ignore
-    }
+    removeStored('kuberz_day', 'kuberz_txs', 'kuberz_commitments', 'kuberz_subs', 'kuberz_goals');
     setCurrentDay(8);
     setTransactions(INITIAL_TRANSACTIONS);
     setCommitments(INITIAL_COMMITMENTS);
@@ -319,7 +308,7 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
     }
   }, [currentDay]);
 
-  const value: FinancialContextValue = {
+  const value: FinancialContextValue = useMemo(() => ({
     currentDay,
     setCurrentDay,
     transactions,
@@ -349,7 +338,12 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
     handleResetData,
     handleLoadScenario,
     handleAdvanceDay,
-  };
+  }), [currentDay, transactions, commitments, subscriptions, savingsGoals, soundEnabled,
+       metrics, liquidBalance, totalIncome, totalExpense, totalSavingsLocked,
+       handleAddTransaction, handleDeleteTransaction, handleToggleSubscription,
+       handleToggleCommitmentPaid, handleDepositGoal, handleWithdrawGoal, handleAddGoal,
+       handleCommitDecision, handleApplyLifeEvent, handleResetData, handleLoadScenario,
+       handleAdvanceDay]);
 
   return <FinancialContext.Provider value={value}>{children}</FinancialContext.Provider>;
 }

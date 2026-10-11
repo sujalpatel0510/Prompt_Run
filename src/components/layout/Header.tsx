@@ -15,9 +15,9 @@ import {
   Sun,
   Moon,
 } from 'lucide-react';
-import { sounds } from '../utils/audio';
-import { useTheme } from '../theme/ThemeProvider';
-import { Magnet } from './ui/Animations';
+import { sounds } from '../../utils/audio';
+import { useTheme } from '../../theme/ThemeProvider';
+import { Magnet } from '../ui/Animations';
 
 interface HeaderProps {
   currentDay: number;
@@ -279,6 +279,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onToggleSound}
             className="hidden md:inline-flex p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-all"
             title={soundEnabled ? 'Mute Sounds' : 'Unmute Sounds'}
+            aria-label={soundEnabled ? 'Mute sounds' : 'Unmute sounds'}
           >
             {soundEnabled ? (
               <Volume2 className="w-4 h-4 text-emerald-400" />

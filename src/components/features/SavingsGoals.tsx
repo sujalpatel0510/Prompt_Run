@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Target, Plus, Lock, CheckCircle2, ArrowUpRight, ArrowDownLeft, X, AlertTriangle } from 'lucide-react';
-import { SavingsGoal } from '../types/finance';
-import { sounds } from '../utils/audio';
-import { Magnet, ScrollReveal, AnimatedCounter } from './ui/Animations';
+import { SavingsGoal } from '../../types/finance';
+import { sounds } from '../../utils/audio';
+import { Magnet, ScrollReveal, AnimatedCounter } from '../ui/Animations';
 
 interface SavingsGoalsProps {
   savingsGoals: SavingsGoal[];

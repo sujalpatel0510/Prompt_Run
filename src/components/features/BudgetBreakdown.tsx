@@ -11,9 +11,9 @@ import {
   ArrowDownRight,
   ArrowUpRight,
 } from 'lucide-react';
-import { Transaction, Category } from '../types/finance';
-import { sounds } from '../utils/audio';
-import { ScrollReveal } from './ui/Animations';
+import { Transaction, Category } from '../../types/finance';
+import { sounds } from '../../utils/audio';
+import { ScrollReveal } from '../ui/Animations';
 
 interface BudgetBreakdownProps {
   currentDay: number;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useFinancial } from '../context/FinancialContext';
-import { LifeEventModal } from '../components/LifeEventModal';
+import { LifeEventModal } from '../components/features/LifeEventModal';
 import { Sparkles } from 'lucide-react';
 
 export function UnexpectedExpensesPage() {

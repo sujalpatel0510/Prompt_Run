@@ -2,8 +2,8 @@ import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { FinancialProvider, useFinancial } from './context/FinancialContext';
-import { Header } from './components/Header';
-import { NavBar } from './components/NavBar';
+import { Header } from './components/layout/Header';
+import { NavBar } from './components/layout/NavBar';
 import { CustomCursor } from './components/ui/CustomCursor';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
@@ -20,10 +20,10 @@ const HealthPage = lazy(() => import('./pages/HealthPage').then(m => ({ default:
 
 // Modals
 const LifeEventModal = lazy(() =>
-  import('./components/LifeEventModal').then((m) => ({ default: m.LifeEventModal }))
+  import('./components/features/LifeEventModal').then((m) => ({ default: m.LifeEventModal }))
 );
 const ExportModal = lazy(() =>
-  import('./components/ExportModal').then((m) => ({ default: m.ExportModal }))
+  import('./components/features/ExportModal').then((m) => ({ default: m.ExportModal }))
 );
 
 function Layout() {
@@ -48,12 +48,19 @@ function Layout() {
       <CustomCursor />
 
       {/* Ambient background layers */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      <div className="ambient-bg pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -top-40 -left-40 w-[36rem] h-[36rem] rounded-full bg-emerald-600/10 blur-[130px]" />
         <div className="absolute top-1/3 -right-40 w-[32rem] h-[32rem] rounded-full bg-cyan-600/10 blur-[130px]" />
         <div className="absolute -bottom-40 left-1/3 w-[30rem] h-[30rem] rounded-full bg-purple-600/10 blur-[130px]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(16,185,129,0.08),transparent_55%)]" />
       </div>
+
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:rounded-xl focus:bg-emerald-500 focus:text-slate-950 focus:font-bold focus:text-sm"
+      >
+        Skip to main content
+      </a>
 
       {/* Top Application Header */}
       <Header
@@ -71,7 +78,7 @@ function Layout() {
       <NavBar />
 
       {/* Main Body */}
-      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6">
+      <main id="main" tabIndex={-1} className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6 focus:outline-none">
         <AnimatePresence mode="wait">
           <Suspense fallback={<div className="h-20 flex items-center justify-center text-slate-500">Loading…</div>}>
             <ErrorBoundary>

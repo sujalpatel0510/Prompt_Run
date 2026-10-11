@@ -1,12 +1,12 @@
 import React from 'react';
 import { useFinancial } from '../context/FinancialContext';
-import { HeroMetrics } from '../components/HeroMetrics';
-import { WhatIfSimulator } from '../components/WhatIfSimulator';
-import { Timeline30Days } from '../components/Timeline30Days';
-import { SubscriptionsVault } from '../components/SubscriptionsVault';
-import { SavingsGoals } from '../components/SavingsGoals';
-import { BudgetBreakdown } from '../components/BudgetBreakdown';
-import { VibeCheckAdvisor } from '../components/VibeCheckAdvisor';
+import { HeroMetrics } from '../components/features/HeroMetrics';
+import { WhatIfSimulator } from '../components/features/WhatIfSimulator';
+import { Timeline30Days } from '../components/features/Timeline30Days';
+import { SubscriptionsVault } from '../components/features/SubscriptionsVault';
+import { SavingsGoals } from '../components/features/SavingsGoals';
+import { BudgetBreakdown } from '../components/features/BudgetBreakdown';
+import { VibeCheckAdvisor } from '../components/features/VibeCheckAdvisor';
 import { ScrollReveal } from '../components/ui/Animations';
 
 export function OverviewPage() {

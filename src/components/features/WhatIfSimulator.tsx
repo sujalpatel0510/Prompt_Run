@@ -23,11 +23,11 @@ import {
   Commitment,
   Subscription,
   SavingsGoal,
-} from '../types/finance';
-import { simulateDecision } from '../utils/engine';
-import { PRESET_SIMULATIONS } from '../data/initialData';
-import { sounds } from '../utils/audio';
-import { Magnet, AnimatedCounter, ScrollReveal } from './ui/Animations';
+} from '../../types/finance';
+import { simulateDecision } from '../../utils/engine';
+import { PRESET_SIMULATIONS } from '../../data/initialData';
+import { sounds } from '../../utils/audio';
+import { Magnet, AnimatedCounter, ScrollReveal } from '../ui/Animations';
 
 interface WhatIfSimulatorProps {
   currentDay: number;

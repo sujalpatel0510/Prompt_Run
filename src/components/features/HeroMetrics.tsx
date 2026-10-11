@@ -12,9 +12,9 @@ import {
   CalendarCheck,
   CheckCircle2,
 } from 'lucide-react';
-import { FinancialHealthMetrics } from '../types/finance';
-import { TOTAL_DAYS, IDEAL_DAILY_BASELINE } from '../utils/engine';
-import { ScrollReveal, AnimatedCounter } from './ui/Animations';
+import { FinancialHealthMetrics } from '../../types/finance';
+import { TOTAL_DAYS, IDEAL_DAILY_BASELINE } from '../../utils/engine';
+import { ScrollReveal, AnimatedCounter } from '../ui/Animations';
 
 interface HeroMetricsProps {
   currentDay: number;

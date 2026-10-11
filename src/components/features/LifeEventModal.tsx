@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Dices, X, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
-import { LifeEvent } from '../types/finance';
-import { LIFE_EVENTS_POOL } from '../data/initialData';
-import { sounds } from '../utils/audio';
+import { LifeEvent } from '../../types/finance';
+import { LIFE_EVENTS_POOL } from '../../data/initialData';
+import { sounds } from '../../utils/audio';
 
 interface LifeEventModalProps {
   isOpen: boolean;

@@ -1,9 +1,7 @@
-'use client';
-
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, useSpring, useMotionValue, useReducedMotion } from 'framer-motion';
 
-type CursorVariant = 'default' | 'hover' | 'text' | 'view' | 'down' | 'hidden';
+type CursorVariant = 'default' | 'hover' | 'text' | 'hidden';
 
 interface CursorState {
   variant: CursorVariant;
@@ -14,10 +12,14 @@ const INTERACTIVE_SELECTOR =
   'a, button, [role="button"], input, select, textarea, [data-cursor], label, summary';
 const TEXT_SELECTOR = 'input[type="text"], input[type="number"], textarea, [contenteditable="true"]';
 
+/**
+ * "Precision ring" cursor: an instant centre dot plus a spring-lagged outline
+ * ring that expands over interactive targets and collapses to a caret over
+ * text fields. Only cheap motion values move per frame; React state commits
+ * only when the hover variant actually changes.
+ */
 export const CustomCursor: React.FC = () => {
   const prefersReducedMotion = useReducedMotion();
-  // Whether the device has a precise pointer (mouse/trackpad) without touch.
-  // Derived during initialization so no state update is needed in an effect.
   const [enabled] = useState(() => {
     if (typeof window === 'undefined') return false;
     return (
@@ -27,16 +29,13 @@ export const CustomCursor: React.FC = () => {
   });
   const [state, setState] = useState<CursorState>({ variant: 'default', label: '' });
   const [isDown, setIsDown] = useState(false);
-  const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([]);
+  const [pulse, setPulse] = useState(0);
 
   const dotX = useMotionValue(-100);
   const dotY = useMotionValue(-100);
-
-  const ringX = useSpring(dotX, { stiffness: 350, damping: 28, mass: 0.6 });
-  const ringY = useSpring(dotY, { stiffness: 350, damping: 28, mass: 0.6 });
-
-  const glowX = useSpring(dotX, { stiffness: 120, damping: 22, mass: 1 });
-  const glowY = useSpring(dotY, { stiffness: 120, damping: 22, mass: 1 });
+  // The ring trails the dot with a softer spring for a layered feel.
+  const ringX = useSpring(dotX, { stiffness: 260, damping: 24, mass: 0.6 });
+  const ringY = useSpring(dotY, { stiffness: 260, damping: 24, mass: 0.6 });
 
   const lastVariantKey = useRef('');
 
@@ -49,8 +48,7 @@ export const CustomCursor: React.FC = () => {
       return { variant, label: cursorEl.dataset.cursorLabel || '' };
     }
 
-    const textEl = target.closest(TEXT_SELECTOR);
-    if (textEl) return { variant: 'text', label: '' };
+    if (target.closest(TEXT_SELECTOR)) return { variant: 'text', label: '' };
 
     const interactiveEl = target.closest(INTERACTIVE_SELECTOR);
     if (interactiveEl) {
@@ -69,9 +67,6 @@ export const CustomCursor: React.FC = () => {
 
     document.body.dataset.customCursor = 'true';
 
-    // Motion values update the cursor without triggering React renders. Only a
-    // genuine change of hover variant/label commits state, so moving the pointer
-    // across empty space costs no reconciliation work.
     const handleMove = (e: MouseEvent) => {
       dotX.set(e.clientX);
       dotY.set(e.clientY);
@@ -86,9 +81,9 @@ export const CustomCursor: React.FC = () => {
 
     const handleDown = (e: MouseEvent) => {
       setIsDown(true);
-      const id = performance.now();
-      setRipples((prev) => [...prev.slice(-3), { x: e.clientX, y: e.clientY, id }]);
-      window.setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 650);
+      dotX.set(e.clientX);
+      dotY.set(e.clientY);
+      setPulse((p) => p + 1);
     };
 
     const handleUp = () => setIsDown(false);
@@ -114,111 +109,69 @@ export const CustomCursor: React.FC = () => {
   if (!enabled || prefersReducedMotion) return null;
 
   const { variant, label } = state;
-  const isHover = variant === 'hover' || variant === 'view';
+  const isHover = variant === 'hover';
   const isText = variant === 'text';
-
-  const ringSize = isHover ? 56 : isText ? 3 : 34;
-  const ringBorder = isHover ? 1.5 : isText ? 0 : 1.5;
-  const ringOpacity = variant === 'hidden' ? 0 : isHover ? 1 : 0.75;
-  const ringRadius = isText ? 2 : 9999;
-
-  const accent =
-    variant === 'view'
-      ? 'rgba(168, 85, 247, 0.9)'
-      : isHover
-      ? 'rgba(16, 185, 129, 0.95)'
-      : 'rgba(16, 185, 129, 0.65)';
+  const hidden = variant === 'hidden';
 
   return (
     <div
       className="pointer-events-none fixed inset-0 z-[9999] hidden md:block"
       aria-hidden="true"
-      data-custom-cursor
     >
+      {/* Spring-lagged outline ring */}
       <motion.div
-        className="absolute top-0 left-0 rounded-full"
-        style={{
-          x: glowX,
-          y: glowY,
-          translateX: '-50%',
-          translateY: '-50%',
-          width: 320,
-          height: 320,
-          background:
-            'radial-gradient(circle, rgba(16,185,129,0.10) 0%, rgba(6,182,212,0.06) 35%, transparent 70%)',
+        className="absolute top-0 left-0 rounded-full border-[1.5px]"
+        style={{ x: ringX, y: ringY, translateX: '-50%', translateY: '-50%', borderColor: 'var(--cursor-accent)' }}
+        animate={{
+          width: hidden ? 0 : isText ? 2 : isHover ? 52 : 28,
+          height: hidden ? 0 : isText ? 22 : isHover ? 52 : 28,
+          borderRadius: isText ? 1 : 9999,
+          opacity: hidden ? 0 : isHover ? 1 : 0.75,
+          scale: isDown ? 0.8 : 1,
         }}
-        animate={{ opacity: isHover ? 1 : 0.6, scale: isDown ? 0.85 : 1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 28, mass: 0.7 }}
       />
 
-      {ripples.map((ripple) => (
-        <motion.div
-          key={ripple.id}
-          className="absolute top-0 left-0 rounded-full"
+      {/* Click pulse — spawned only on mousedown */}
+      <motion.div
+        key={pulse}
+        className="absolute top-0 left-0 rounded-full border"
+        style={{ x: dotX, y: dotY, translateX: '-50%', translateY: '-50%', borderColor: 'var(--cursor-accent)' }}
+        initial={{ width: 8, height: 8, opacity: 0.55 }}
+        animate={{ width: 56, height: 56, opacity: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      />
+
+      {/* Optional label chip */}
+      {label && isHover && (
+        <motion.span
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute top-0 left-0 whitespace-nowrap px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider"
           style={{
-            left: ripple.x,
-            top: ripple.y,
-            translateX: '-50%',
-            translateY: '-50%',
-            border: '1px solid rgba(16,185,129,0.5)',
+            x: ringX,
+            y: ringY,
+            translateX: '8px',
+            translateY: '22px',
+            background: 'var(--cursor-chip-bg)',
+            color: 'var(--cursor-chip-text)',
           }}
-          initial={{ width: 8, height: 8, opacity: 0.6 }}
-          animate={{ width: 64, height: 64, opacity: 0 }}
-          transition={{ duration: 0.7, ease: 'easeOut' }}
-        />
-      ))}
+        >
+          {label}
+        </motion.span>
+      )}
 
+      {/* Instant centre dot */}
       <motion.div
-        className="absolute top-0 left-0 flex items-center justify-center"
-        style={{
-          x: ringX,
-          y: ringY,
-          translateX: '-50%',
-          translateY: '-50%',
-          width: ringSize,
-          height: ringSize,
-          borderRadius: ringRadius,
-          border: `${ringBorder}px solid ${accent}`,
-          backdropFilter: isHover ? 'blur(2px)' : 'none',
-          backgroundColor: isHover ? 'rgba(16,185,129,0.08)' : 'transparent',
-          mixBlendMode: isText ? 'difference' : 'normal',
-        }}
+        className="absolute top-0 left-0 rounded-full"
+        style={{ x: dotX, y: dotY, translateX: '-50%', translateY: '-50%', background: 'var(--cursor-accent)' }}
         animate={{
-          width: ringSize,
-          height: ringSize,
-          borderRadius: ringRadius,
-          opacity: ringOpacity,
-          scale: isDown ? 0.82 : 1,
+          width: hidden || isHover || isText ? 0 : 5,
+          height: hidden || isHover || isText ? 0 : 5,
+          opacity: hidden ? 0 : 1,
+          scale: isDown ? 1.8 : 1,
         }}
-        transition={{ type: 'spring', stiffness: 320, damping: 26, mass: 0.7 }}
-      >
-        {label && isHover && (
-          <motion.span
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.6 }}
-            className="whitespace-nowrap px-1 text-[9px] font-bold uppercase tracking-wider text-emerald-300"
-          >
-            {label}
-          </motion.span>
-        )}
-      </motion.div>
-
-      <motion.div
-        className="absolute top-0 left-0 rounded-full bg-emerald-400"
-        style={{
-          x: dotX,
-          y: dotY,
-          translateX: '-50%',
-          translateY: '-50%',
-        }}
-        animate={{
-          width: isHover ? 0 : isText ? 0 : 6,
-          height: isHover ? 0 : isText ? 0 : 6,
-          opacity: variant === 'hidden' ? 0 : 1,
-          scale: isDown ? 2 : 1,
-        }}
-        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        transition={{ type: 'spring', stiffness: 520, damping: 30 }}
       />
     </div>
   );

@@ -1,5 +1,4 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
   Receipt,
@@ -11,7 +10,7 @@ import {
   Sparkles,
   HeartPulse,
 } from 'lucide-react';
-import { sounds } from '../utils/audio';
+import { sounds } from '../../utils/audio';
 
 const LINKS = [
   { to: '/overview', label: 'Overview', icon: LayoutDashboard },
@@ -31,7 +30,7 @@ export function NavBar() {
   return (
     <nav aria-label="Primary" className="w-full border-b border-slate-800/70 bg-slate-950/60 backdrop-blur-xl sticky top-0 z-40">
       <div className="w-full px-4 sm:px-6 lg:px-8 overflow-x-auto">
-        <ul role="tablist" className="flex items-center gap-1.5 py-2 min-w-max">
+        <ul className="flex items-center gap-1.5 py-2 min-w-max">
           {LINKS.map(link => {
             const Icon = link.icon;
             const active = location.pathname === link.to;
@@ -39,8 +38,6 @@ export function NavBar() {
               <li key={link.to}>
                 <NavLink
                   to={link.to}
-                  role="tab"
-                  aria-selected={active}
                   onClick={() => sounds.playClick()}
                   className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap focus-ring ${
                     active
@@ -54,12 +51,6 @@ export function NavBar() {
                     <span className="text-[10px] px-1.5 py-0.2 rounded-full font-extrabold bg-indigo-500/20 text-indigo-300">
                       {link.badge}
                     </span>
-                  )}
-                  {active && (
-                    <motion.span
-                      layoutId="nav-active"
-                      className="absolute inset-x-0 -bottom-px h-0.5 bg-emerald-500 hidden"
-                    />
                   )}
                 </NavLink>
               </li>

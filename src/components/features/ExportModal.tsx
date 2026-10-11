@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Share2, X, Copy, Check, Download } from 'lucide-react';
-import { FinancialHealthMetrics, Transaction, SavingsGoal } from '../types/finance';
-import { sounds } from '../utils/audio';
+import { FinancialHealthMetrics, Transaction, SavingsGoal } from '../../types/finance';
+import { sounds } from '../../utils/audio';
 
 interface ExportModalProps {
   isOpen: boolean;

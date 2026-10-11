@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion, useMotionValue, useSpring } from 'framer-motion';
 
 interface MagnetProps {
   children: React.ReactNode;
@@ -13,6 +13,12 @@ interface MagnetProps {
   onMouseLeave?: () => void;
 }
 
+/**
+ * Magnetic hover wrapper driven entirely by motion values — the pointer
+ * handler never commits React state, so wrapping dozens of buttons costs no
+ * re-renders. Falls back to a static wrapper when disabled or when the user
+ * prefers reduced motion.
+ */
 export const Magnet: React.FC<MagnetProps> = ({
   children,
   padding = 80,
@@ -23,74 +29,59 @@ export const Magnet: React.FC<MagnetProps> = ({
   onMouseLeave,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [isActive, setIsActive] = useState(false);
-  const activeRef = useRef(false);
-  const lastOffset = useRef({ x: 0, y: 0 });
   const prefersReducedMotion = useReducedMotion();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 320, damping: 22, mass: 0.5 });
+  const springY = useSpring(y, { stiffness: 320, damping: 22, mass: 0.5 });
 
   useEffect(() => {
     if (disabled || prefersReducedMotion) return;
 
-    const setActive = (next: boolean) => {
-      if (activeRef.current !== next) {
-        activeRef.current = next;
-        setIsActive(next);
-      }
-    };
-
+    let inside = false;
     const handleMouseMove = (e: MouseEvent) => {
       const element = ref.current;
       if (!element) return;
 
       const rect = element.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      const deltaX = e.clientX - (rect.left + rect.width / 2);
+      const deltaY = e.clientY - (rect.top + rect.height / 2);
 
-      const deltaX = e.clientX - centerX;
-      const deltaY = e.clientY - centerY;
-
-      const distanceX = Math.abs(deltaX);
-      const distanceY = Math.abs(deltaY);
-
-      if (distanceX < rect.width / 2 + padding && distanceY < rect.height / 2 + padding) {
-        setActive(true);
-        const nextX = deltaX / strength;
-        const nextY = deltaY / strength;
-        // Skip state updates for sub-pixel changes to avoid needless re-renders.
-        if (Math.abs(nextX - lastOffset.current.x) > 0.5 || Math.abs(nextY - lastOffset.current.y) > 0.5) {
-          lastOffset.current = { x: nextX, y: nextY };
-          setOffset({ x: nextX, y: nextY });
-        }
-      } else if (activeRef.current) {
-        setActive(false);
-        lastOffset.current = { x: 0, y: 0 };
-        setOffset({ x: 0, y: 0 });
+      if (
+        Math.abs(deltaX) < rect.width / 2 + padding &&
+        Math.abs(deltaY) < rect.height / 2 + padding
+      ) {
+        inside = true;
+        x.set(deltaX / strength);
+        y.set(deltaY / strength);
+      } else if (inside) {
+        inside = false;
+        x.set(0);
+        y.set(0);
       }
     };
 
-    const handleMouseLeave = () => {
-      setActive(false);
-      lastOffset.current = { x: 0, y: 0 };
-      setOffset({ x: 0, y: 0 });
+    const handleLeave = () => {
+      inside = false;
+      x.set(0);
+      y.set(0);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      handleMouseLeave();
+      handleLeave();
     };
-  }, [disabled, padding, strength, prefersReducedMotion]);
+  }, [disabled, padding, strength, prefersReducedMotion, x, y]);
 
-  const transition = isActive
-    ? { type: 'spring' as const, stiffness: 400, damping: 30, mass: 1 }
-    : { type: 'spring' as const, stiffness: 300, damping: 40, mass: 1.5 };
+  if (disabled || prefersReducedMotion) {
+    return <div className={`inline-block ${className}`}>{children}</div>;
+  }
 
   return (
     <div ref={ref} className={`inline-block ${className}`}>
       <motion.div
-        style={{ x: offset.x, y: offset.y, willChange: 'transform' }}
-        transition={transition}
+        style={{ x: springX, y: springY, willChange: 'transform' }}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       >

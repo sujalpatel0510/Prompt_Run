@@ -3,10 +3,10 @@
 import React, { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Calendar, FastForward, Leaf, Activity } from 'lucide-react';
-import { Transaction, Commitment, Subscription } from '../types/finance';
-import { TOTAL_DAYS, INITIAL_BUDGET } from '../utils/engine';
-import { sounds } from '../utils/audio';
-import { Magnet, ScrollReveal } from './ui/Animations';
+import { Transaction, Commitment, Subscription } from '../../types/finance';
+import { TOTAL_DAYS, INITIAL_BUDGET } from '../../utils/engine';
+import { sounds } from '../../utils/audio';
+import { Magnet, ScrollReveal } from '../ui/Animations';
 
 interface Timeline30DaysProps {
   currentDay: number;

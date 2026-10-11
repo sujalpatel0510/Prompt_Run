@@ -1,5 +1,5 @@
 import { useFinancial } from '../context/FinancialContext';
-import { SavingsGoals } from '../components/SavingsGoals';
+import { SavingsGoals } from '../components/features/SavingsGoals';
 
 export function SavingsPage() {
   const { savingsGoals, liquidBalance, handleDepositGoal, handleWithdrawGoal, handleAddGoal } = useFinancial();

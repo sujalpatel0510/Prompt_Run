@@ -139,6 +139,18 @@ html.light {
   color: #ffffff !important;
 }
 
+/* Custom-cursor palette (pointer-fine devices only) */
+:root {
+  --cursor-accent: rgba(16, 185, 129, 0.9);
+  --cursor-chip-bg: rgba(6, 78, 59, 0.92);
+  --cursor-chip-text: #d1fae5;
+}
+html.light {
+  --cursor-accent: rgba(5, 150, 105, 0.85);
+  --cursor-chip-bg: rgba(5, 150, 105, 0.92);
+  --cursor-chip-text: #ffffff;
+}
+
 /* Native controls that carry colour in an inline SVG data-URI */
 html.light .select-premium {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
