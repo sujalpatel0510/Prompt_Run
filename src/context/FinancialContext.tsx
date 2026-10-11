@@ -6,7 +6,6 @@ import {
   SavingsGoal,
   LifeEvent,
   SimulationParams,
-  Category,
 } from '../types/finance';
 import {
   INITIAL_COMMITMENTS,
@@ -355,6 +354,7 @@ export function FinancialProvider({ children }: { children: ReactNode }) {
   return <FinancialContext.Provider value={value}>{children}</FinancialContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useFinancial() {
   const context = useContext(FinancialContext);
   if (!context) {

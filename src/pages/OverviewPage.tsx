@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { useFinancial } from '../context/FinancialContext';
 import { HeroMetrics } from '../components/HeroMetrics';
 import { WhatIfSimulator } from '../components/WhatIfSimulator';

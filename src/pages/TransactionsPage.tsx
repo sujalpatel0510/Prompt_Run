@@ -5,10 +5,8 @@ import {
   Trash2,
   Edit3,
   Search,
-  Filter,
   ChevronUp,
   ChevronDown,
-  ArrowUpDown,
   X,
 } from 'lucide-react';
 import { useFinancial } from '../context/FinancialContext';

@@ -1,30 +1,13 @@
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Plus,
-  Trash2,
-  Edit3,
   Calendar,
   CheckCircle2,
   AlertCircle,
   ArrowUpRight,
-  ArrowDownRight,
 } from 'lucide-react';
 import { useFinancial } from '../context/FinancialContext';
-import { Commitment, Category } from '../types/finance';
 import { ScrollReveal, Magnet } from '../components/ui/Animations';
-import { sounds } from '../utils/audio';
 import { formatINR } from '../utils/format';
-
-const COMMITMENT_CATEGORIES: Category[] = [
-  'Bills & Utilities',
-  'Food & Canteen',
-  'Travel & Metro',
-  'Study & Supplies',
-  'Shopping & Fashion',
-  'Entertainment & Party',
-  'Health & Emergency',
-];
 
 export function CommitmentsPage() {
   const {
@@ -34,16 +17,6 @@ export function CommitmentsPage() {
     metrics,
   } = useFinancial();
 
-  const [showModal, setShowModal] = useState(false);
-  const [editingCommitment, setEditingCommitment] = useState<Commitment | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    amount: '',
-    dueDay: currentDay,
-    category: 'Bills & Utilities' as Category,
-    isEssential: true,
-  });
-
   const upcoming = commitments.filter(c => !c.isPaid && c.dueDay >= currentDay);
   const overdue = commitments.filter(c => !c.isPaid && c.dueDay < currentDay);
   const paid = commitments.filter(c => c.isPaid);
@@ -51,36 +24,6 @@ export function CommitmentsPage() {
   const totalUpcoming = upcoming.reduce((sum, c) => sum + c.amount, 0);
   const totalOverdue = overdue.reduce((sum, c) => sum + c.amount, 0);
   const totalPaid = paid.reduce((sum, c) => sum + c.amount, 0);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.title.trim() || !formData.amount) return;
-
-    const amount = parseFloat(formData.amount);
-    if (isNaN(amount) || amount <= 0) return;
-
-    sounds.playClick();
-
-    if (editingCommitment) {
-      // We need an update function in context - for now we'll just use the existing toggle for paid status
-      // For full edit, we'd need to add updateCommitment to context
-    } else {
-      // Add new commitment via context would need to be added
-      // For now, we'll show an alert
-      alert('Commitment creation requires context update. Use the simulator for now.');
-    }
-
-    setFormData({ title: '', amount: '', dueDay: currentDay, category: 'Bills & Utilities', isEssential: true });
-    setEditingCommitment(null);
-    setShowModal(false);
-  };
-
-  const handleDelete = (id: string) => {
-    if (confirm('Delete this commitment?')) {
-      sounds.playClick();
-      // Would need delete function in context
-    }
-  };
 
   const formatDay = (day: number) => `Day ${day}`;
 
@@ -93,15 +36,6 @@ export function CommitmentsPage() {
               <h1 className="text-2xl lg:text-3xl font-extrabold text-white">Financial Commitments</h1>
               <p className="text-sm text-slate-400 mt-1">Track rent, bills, and planned purchases with due dates</p>
             </div>
-            <Magnet padding={15} strength={3}>
-              <button
-                onClick={() => { sounds.playClick(); setFormData({ title: '', amount: '', dueDay: currentDay, category: 'Bills & Utilities', isEssential: true }); setEditingCommitment(null); setShowModal(true); }}
-                className="btn-primary flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add Commitment
-              </button>
-            </Magnet>
           </div>
 
           {/* Summary */}

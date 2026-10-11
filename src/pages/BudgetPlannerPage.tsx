@@ -4,14 +4,11 @@ import {
   Plus,
   Trash2,
   Edit3,
-  AlertTriangle,
-  CheckCircle2,
   ArrowUpRight,
-  ArrowDownRight,
   X,
 } from 'lucide-react';
 import { useFinancial } from '../context/FinancialContext';
-import { Transaction, Category, CategoryBudget } from '../types/finance';
+import { Category, CategoryBudget } from '../types/finance';
 import { ScrollReveal, Magnet } from '../components/ui/Animations';
 import { sounds } from '../utils/audio';
 import { formatINR } from '../utils/format';
@@ -23,7 +20,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Cell,
 } from 'recharts';
 
 const CATEGORIES: Category[] = [
@@ -58,8 +54,6 @@ export function BudgetPlannerPage() {
     currentDay,
     liquidBalance,
     metrics,
-    handleAddTransaction,
-    handleDeleteTransaction,
   } = useFinancial();
 
   const [categoryBudgets, setCategoryBudgets] = useState<CategoryBudget[]>(() => {
