@@ -42,15 +42,77 @@ import { LifeEventModal } from './components/LifeEventModal';
 import { ExportModal } from './components/ExportModal';
 
 export function App() {
-  const [currentDay, setCurrentDay] = useState<number>(8);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [commitments, setCommitments] = useState<Commitment[]>(INITIAL_COMMITMENTS);
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(INITIAL_SUBSCRIPTIONS);
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(INITIAL_SAVINGS_GOALS);
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [currentDay, setCurrentDay] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('kuberz_day');
+      return saved ? JSON.parse(saved) : 8;
+    } catch {
+      return 8;
+    }
+  });
+
+  const [transactions, setTransactions] = useState<Transaction[]>(() => {
+    try {
+      const saved = localStorage.getItem('kuberz_txs');
+      return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
+    } catch {
+      return INITIAL_TRANSACTIONS;
+    }
+  });
+
+  const [commitments, setCommitments] = useState<Commitment[]>(() => {
+    try {
+      const saved = localStorage.getItem('kuberz_commitments');
+      return saved ? JSON.parse(saved) : INITIAL_COMMITMENTS;
+    } catch {
+      return INITIAL_COMMITMENTS;
+    }
+  });
+
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>(() => {
+    try {
+      const saved = localStorage.getItem('kuberz_subs');
+      return saved ? JSON.parse(saved) : INITIAL_SUBSCRIPTIONS;
+    } catch {
+      return INITIAL_SUBSCRIPTIONS;
+    }
+  });
+
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(() => {
+    try {
+      const saved = localStorage.getItem('kuberz_goals');
+      return saved ? JSON.parse(saved) : INITIAL_SAVINGS_GOALS;
+    } catch {
+      return INITIAL_SAVINGS_GOALS;
+    }
+  });
+
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('kuberz_sound');
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
+
+  // Persist state changes purely clientside
+  useEffect(() => {
+    try {
+      localStorage.setItem('kuberz_day', JSON.stringify(currentDay));
+      localStorage.setItem('kuberz_txs', JSON.stringify(transactions));
+      localStorage.setItem('kuberz_commitments', JSON.stringify(commitments));
+      localStorage.setItem('kuberz_subs', JSON.stringify(subscriptions));
+      localStorage.setItem('kuberz_goals', JSON.stringify(savingsGoals));
+      localStorage.setItem('kuberz_sound', JSON.stringify(soundEnabled));
+    } catch {
+      // Storage quota or disabled in iframe
+    }
+  }, [currentDay, transactions, commitments, subscriptions, savingsGoals, soundEnabled]);
 
   // Active view tab: 'overview' | 'simulator' | 'timeline' | 'commitments' | 'goals'
   const [activeTab, setActiveTab] = useState<'overview' | 'simulator' | 'timeline' | 'commitments' | 'goals'>('overview');
+
 
   // Modals
   const [isLifeEventOpen, setIsLifeEventOpen] = useState<boolean>(false);
@@ -88,12 +150,22 @@ export function App() {
 
   // Reset to default
   const handleResetData = () => {
+    try {
+      localStorage.removeItem('kuberz_day');
+      localStorage.removeItem('kuberz_txs');
+      localStorage.removeItem('kuberz_commitments');
+      localStorage.removeItem('kuberz_subs');
+      localStorage.removeItem('kuberz_goals');
+    } catch {
+      // Ignore
+    }
     setCurrentDay(8);
     setTransactions(INITIAL_TRANSACTIONS);
     setCommitments(INITIAL_COMMITMENTS);
     setSubscriptions(INITIAL_SUBSCRIPTIONS);
     setSavingsGoals(INITIAL_SAVINGS_GOALS);
   };
+
 
   // Preset Scenario Switcher
   const handleLoadScenario = (scenario: 'baseline' | 'day1' | 'crisis' | 'frugal') => {
