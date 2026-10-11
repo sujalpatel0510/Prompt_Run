@@ -16,7 +16,15 @@ const TEXT_SELECTOR = 'input[type="text"], input[type="number"], textarea, [cont
 
 export const CustomCursor: React.FC = () => {
   const prefersReducedMotion = useReducedMotion();
-  const [enabled, setEnabled] = useState(false);
+  // Whether the device has a precise pointer (mouse/trackpad) without touch.
+  // Derived during initialization so no state update is needed in an effect.
+  const [enabled] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return (
+      window.matchMedia('(pointer: fine)').matches &&
+      !window.matchMedia('(hover: none)').matches
+    );
+  });
   const [state, setState] = useState<CursorState>({ variant: 'default', label: '' });
   const [isDown, setIsDown] = useState(false);
   const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([]);
@@ -30,7 +38,7 @@ export const CustomCursor: React.FC = () => {
   const glowX = useSpring(dotX, { stiffness: 120, damping: 22, mass: 1 });
   const glowY = useSpring(dotY, { stiffness: 120, damping: 22, mass: 1 });
 
-  const lastSpawn = useRef(0);
+  const lastVariantKey = useRef('');
 
   const getVariantFor = useCallback((target: EventTarget | null): CursorState => {
     if (!(target instanceof Element)) return { variant: 'default', label: '' };
@@ -57,35 +65,30 @@ export const CustomCursor: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const finePointer = window.matchMedia('(pointer: fine)').matches;
-    const noHover = window.matchMedia('(hover: none)').matches;
-    if (!finePointer || noHover || prefersReducedMotion) return;
+    if (!enabled || prefersReducedMotion) return;
 
-    // eslint-disable-next-line react/set-state-in-effect
-    setEnabled(true);
     document.body.dataset.customCursor = 'true';
 
+    // Motion values update the cursor without triggering React renders. Only a
+    // genuine change of hover variant/label commits state, so moving the pointer
+    // across empty space costs no reconciliation work.
     const handleMove = (e: MouseEvent) => {
       dotX.set(e.clientX);
       dotY.set(e.clientY);
-      setState(getVariantFor(e.target));
 
-      const now = performance.now();
-      if (now - lastSpawn.current > 60) {
-        lastSpawn.current = now;
-        const id = now;
-        setRipples((prev) => [...prev.slice(-8), { x: e.clientX, y: e.clientY, id }]);
-        window.setTimeout(() => {
-          setRipples((prev) => prev.filter((r) => r.id !== id));
-        }, 700);
+      const next = getVariantFor(e.target);
+      const key = `${next.variant}|${next.label}`;
+      if (key !== lastVariantKey.current) {
+        lastVariantKey.current = key;
+        setState(next);
       }
     };
 
     const handleDown = (e: MouseEvent) => {
       setIsDown(true);
       const id = performance.now();
-      setRipples((prev) => [...prev.slice(-8), { x: e.clientX, y: e.clientY, id }]);
-      window.setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 700);
+      setRipples((prev) => [...prev.slice(-3), { x: e.clientX, y: e.clientY, id }]);
+      window.setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 650);
     };
 
     const handleUp = () => setIsDown(false);
@@ -106,9 +109,9 @@ export const CustomCursor: React.FC = () => {
       document.documentElement.removeEventListener('mouseenter', handleEnter);
       delete document.body.dataset.customCursor;
     };
-  }, [dotX, dotY, getVariantFor, prefersReducedMotion]);
+  }, [enabled, dotX, dotY, getVariantFor, prefersReducedMotion]);
 
-  if (!enabled) return null;
+  if (!enabled || prefersReducedMotion) return null;
 
   const { variant, label } = state;
   const isHover = variant === 'hover' || variant === 'view';

@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Local QA screenshots / scratch output
+.qa
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

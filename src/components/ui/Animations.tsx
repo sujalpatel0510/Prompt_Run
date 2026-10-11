@@ -25,10 +25,19 @@ export const Magnet: React.FC<MagnetProps> = ({
   const ref = useRef<HTMLDivElement>(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isActive, setIsActive] = useState(false);
+  const activeRef = useRef(false);
+  const lastOffset = useRef({ x: 0, y: 0 });
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (disabled || prefersReducedMotion) return;
+
+    const setActive = (next: boolean) => {
+      if (activeRef.current !== next) {
+        activeRef.current = next;
+        setIsActive(next);
+      }
+    };
 
     const handleMouseMove = (e: MouseEvent) => {
       const element = ref.current;
@@ -45,16 +54,24 @@ export const Magnet: React.FC<MagnetProps> = ({
       const distanceY = Math.abs(deltaY);
 
       if (distanceX < rect.width / 2 + padding && distanceY < rect.height / 2 + padding) {
-        setIsActive(true);
-        setOffset({ x: deltaX / strength, y: deltaY / strength });
-      } else {
-        setIsActive(false);
+        setActive(true);
+        const nextX = deltaX / strength;
+        const nextY = deltaY / strength;
+        // Skip state updates for sub-pixel changes to avoid needless re-renders.
+        if (Math.abs(nextX - lastOffset.current.x) > 0.5 || Math.abs(nextY - lastOffset.current.y) > 0.5) {
+          lastOffset.current = { x: nextX, y: nextY };
+          setOffset({ x: nextX, y: nextY });
+        }
+      } else if (activeRef.current) {
+        setActive(false);
+        lastOffset.current = { x: 0, y: 0 };
         setOffset({ x: 0, y: 0 });
       }
     };
 
     const handleMouseLeave = () => {
-      setIsActive(false);
+      setActive(false);
+      lastOffset.current = { x: 0, y: 0 };
       setOffset({ x: 0, y: 0 });
     };
 

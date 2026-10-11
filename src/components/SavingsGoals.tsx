@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Target, Plus, Lock, CheckCircle2, ArrowUpRight, ArrowDownLeft, X } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { Target, Plus, Lock, CheckCircle2, ArrowUpRight, ArrowDownLeft, X, AlertTriangle } from 'lucide-react';
 import { SavingsGoal } from '../types/finance';
 import { sounds } from '../utils/audio';
 import { Magnet, ScrollReveal, AnimatedCounter } from './ui/Animations';
@@ -16,7 +15,10 @@ interface SavingsGoalsProps {
   onAddGoal: (newGoal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => void;
 }
 
-const triggerConfetti = () => {
+// canvas-confetti is loaded on demand: it is only needed when a goal is
+// completed, so it stays out of the initial bundle.
+const triggerConfetti = async () => {
+  const { default: confetti } = await import('canvas-confetti');
   confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#10b981', '#06b6d4', '#a855f7', '#f59e0b'] });
 };
 
@@ -31,19 +33,36 @@ export const SavingsGoals: React.FC<SavingsGoalsProps> = ({
   const [newTitle, setNewTitle] = useState('');
   const [newTarget, setNewTarget] = useState(2000);
   const [newEmoji, setNewEmoji] = useState('🎒');
+  const [error, setError] = useState('');
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  // Accessibility: while the create-goal dialog is open, trap Escape to close it
+  // and move focus into the dialog.
+  useEffect(() => {
+    if (!showAddModal) return;
+    closeButtonRef.current?.focus();
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowAddModal(false);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [showAddModal]);
 
   const handleDeposit = (goalId: string, amount: number) => {
     if (liquidBalance < amount) {
       sounds.playWarning();
-      alert('Insufficient liquid cash balance to deposit this amount!');
+      setError('Not enough liquid cash to lock that amount. Free up some balance first.');
+      window.setTimeout(() => setError(''), 4000);
       return;
     }
     sounds.playCoin();
     onDepositGoal(goalId, amount);
     const goal = savingsGoals.find((g) => g.id === goalId);
     if (goal && goal.currentAmount + amount >= goal.targetAmount) {
-      triggerConfetti();
+      void triggerConfetti();
       sounds.playSuccess();
     }
   };
@@ -101,6 +120,23 @@ export const SavingsGoals: React.FC<SavingsGoalsProps> = ({
             </button>
           </Magnet>
         </div>
+
+        <AnimatePresence>
+          {error && (
+            <motion.div
+              initial={prefersReducedMotion ? {} : { opacity: 0, y: -8, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: 'auto' }}
+              exit={prefersReducedMotion ? {} : { opacity: 0, y: -8, height: 0 }}
+              className="mb-5 overflow-hidden"
+              role="alert"
+            >
+              <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium">
+                <AlertTriangle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {savingsGoals.map((goal, index) => {
@@ -236,6 +272,7 @@ export const SavingsGoals: React.FC<SavingsGoalsProps> = ({
                   </h3>
                   <Magnet padding={10} strength={4}>
                     <button
+                      ref={closeButtonRef}
                       onClick={() => setShowAddModal(false)}
                       className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors focus-ring"
                       aria-label="Close"
