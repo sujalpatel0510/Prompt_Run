@@ -42,6 +42,11 @@ export interface Subscription {
   icon: string;
 }
 
+export interface CategoryBudget {
+  category: Category;
+  planned: number;
+}
+
 export interface SavingsGoal {
   id: string;
   title: string;
