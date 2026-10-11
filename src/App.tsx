@@ -49,60 +49,49 @@ const ExportModal = lazy(() =>
 
 type AppTab = 'overview' | 'simulator' | 'timeline' | 'commitments' | 'goals';
 
+/**
+ * Reads a persisted value, falling back to a default when storage is
+ * unavailable, the entry is missing, JSON is malformed, or the parsed value
+ * fails the shape check. This keeps a corrupted localStorage entry from
+ * crashing the dashboard on load.
+ */
+function readStored<T>(key: string, fallback: T, isValid: (value: unknown) => value is T): T {
+  try {
+    const saved = localStorage.getItem(key);
+    if (saved === null) return fallback;
+    const parsed: unknown = JSON.parse(saved);
+    return isValid(parsed) ? parsed : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+const isArray = Array.isArray;
+
 export function App() {
-  const [currentDay, setCurrentDay] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('kuberz_day');
-      return saved ? JSON.parse(saved) : 8;
-    } catch {
-      return 8;
-    }
-  });
+  const [currentDay, setCurrentDay] = useState<number>(() =>
+    readStored('kuberz_day', 8, (v): v is number => typeof v === 'number' && Number.isFinite(v))
+  );
 
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    try {
-      const saved = localStorage.getItem('kuberz_txs');
-      return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
-    } catch {
-      return INITIAL_TRANSACTIONS;
-    }
-  });
+  const [transactions, setTransactions] = useState<Transaction[]>(() =>
+    readStored<Transaction[]>('kuberz_txs', INITIAL_TRANSACTIONS, isArray)
+  );
 
-  const [commitments, setCommitments] = useState<Commitment[]>(() => {
-    try {
-      const saved = localStorage.getItem('kuberz_commitments');
-      return saved ? JSON.parse(saved) : INITIAL_COMMITMENTS;
-    } catch {
-      return INITIAL_COMMITMENTS;
-    }
-  });
+  const [commitments, setCommitments] = useState<Commitment[]>(() =>
+    readStored<Commitment[]>('kuberz_commitments', INITIAL_COMMITMENTS, isArray)
+  );
 
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(() => {
-    try {
-      const saved = localStorage.getItem('kuberz_subs');
-      return saved ? JSON.parse(saved) : INITIAL_SUBSCRIPTIONS;
-    } catch {
-      return INITIAL_SUBSCRIPTIONS;
-    }
-  });
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>(() =>
+    readStored<Subscription[]>('kuberz_subs', INITIAL_SUBSCRIPTIONS, isArray)
+  );
 
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(() => {
-    try {
-      const saved = localStorage.getItem('kuberz_goals');
-      return saved ? JSON.parse(saved) : INITIAL_SAVINGS_GOALS;
-    } catch {
-      return INITIAL_SAVINGS_GOALS;
-    }
-  });
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(() =>
+    readStored<SavingsGoal[]>('kuberz_goals', INITIAL_SAVINGS_GOALS, isArray)
+  );
 
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem('kuberz_sound');
-      return saved !== null ? JSON.parse(saved) : true;
-    } catch {
-      return true;
-    }
-  });
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() =>
+    readStored('kuberz_sound', true, (v): v is boolean => typeof v === 'boolean')
+  );
 
   // Persist state changes purely clientside
   useEffect(() => {

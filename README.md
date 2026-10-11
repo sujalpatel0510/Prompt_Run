@@ -76,10 +76,11 @@ The application features a dedicated **What-If Sandbox** that allows users to te
 
 - **Framework**: React 19 + TypeScript
 - **Bundler & Tooling**: Vite 8
-- **Styling**: Tailwind CSS v4 (Modern dark-mode fintech glassmorphism)
+- **Styling**: Tailwind CSS v4 (fintech glassmorphism, light & dark themes via a header toggle)
 - **Icons**: Lucide React
 - **Animations & Effects**: Framer Motion, Canvas Confetti
 - **Audio**: Web Audio API (Synthesized procedural sound effects)
+- **Testing**: Vitest unit tests for the finance engine
 - **Build**: 100% type-safe, zero compilation warnings, optimized production bundle.
 
 ---
@@ -95,4 +96,12 @@ npm run dev
 
 # Build production bundle
 npm run build
+```
+
+## 🧪 Testing & Quality
+
+```bash
+npm test           # Vitest unit tests (finance engine)
+npm run lint       # oxlint
+npm run typecheck  # tsc --build
 ```
