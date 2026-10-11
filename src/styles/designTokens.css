@@ -3,6 +3,18 @@
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
     --font-display: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+
+    /* Semantic surface tokens — dark theme defaults (see theme.css for light overrides) */
+    --surface-app: #030712;
+    --surface-app-2: #0b0f19;
+    --surface-1: rgba(15, 23, 42, 0.7);
+    --surface-2: rgba(15, 23, 42, 0.8);
+    --surface-3: rgba(30, 41, 59, 0.85);
+    --surface-border: rgba(255, 255, 255, 0.06);
+    --surface-border-strong: rgba(255, 255, 255, 0.08);
+    --surface-inset: rgba(255, 255, 255, 0.03);
+    --select-bg: #020617;
+    --select-border: #1e293b;
   }
 
   * {
@@ -29,8 +41,8 @@
 
   body {
     margin: 0;
-    background-color: #030712;
-    color: #f3f4f6;
+    background-color: var(--surface-app);
+    color: var(--color-slate-100, #f3f4f6);
     min-height: 100vh;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -48,48 +60,48 @@
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: #0b0f19;
+    background: var(--surface-app-2);
   }
   ::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #10b981, #06b6d4);
     border-radius: 9999px;
-    border: 2px solid #0b0f19;
+    border: 2px solid var(--surface-app-2);
   }
   ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #34d399, #22d3ee);
   }
   ::-webkit-scrollbar-corner {
-    background: #030712;
+    background: var(--surface-app);
   }
 }
 
 @layer components {
   .glass-panel {
-    background: rgba(15, 23, 42, 0.7);
+    background: var(--surface-1);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--surface-border);
     box-shadow:
       0 4px 24px -4px rgba(0, 0, 0, 0.3),
-      0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+      0 0 0 1px var(--surface-inset) inset;
   }
 
   .glass-panel-elevated {
-    background: rgba(15, 23, 42, 0.8);
+    background: var(--surface-2);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--surface-border-strong);
     box-shadow:
       0 8px 40px -8px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-      0 1px 0 rgba(255, 255, 255, 0.05) inset;
+      0 0 0 1px var(--surface-inset) inset,
+      0 1px 0 var(--surface-inset) inset;
   }
 
   .glass-panel-interactive {
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .glass-panel-interactive:hover {
-    background: rgba(30, 41, 59, 0.85);
+    background: var(--surface-3);
     border-color: rgba(16, 185, 129, 0.25);
     box-shadow:
       0 12px 48px -12px rgba(16, 185, 129, 0.15),
@@ -232,8 +244,8 @@
 
   .select-premium {
     @apply w-full appearance-none cursor-pointer rounded-xl text-sm text-white placeholder-slate-500;
-    background-color: #020617;
-    border: 1px solid #1e293b;
+    background-color: var(--select-bg);
+    border: 1px solid var(--select-border);
     padding: 0.75rem 2.5rem 0.75rem 1rem;
     transition: all 0.2s ease;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
@@ -248,17 +260,17 @@
 
   .card-premium {
     @apply relative rounded-2xl p-5 transition-all duration-300;
-    background: rgba(15, 23, 42, 0.8);
+    background: var(--surface-2);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--surface-border-strong);
     box-shadow:
       0 8px 40px -8px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-      0 1px 0 rgba(255, 255, 255, 0.05) inset;
+      0 0 0 1px var(--surface-inset) inset,
+      0 1px 0 var(--surface-inset) inset;
   }
   .card-premium:hover {
-    background: rgba(30, 41, 59, 0.85);
+    background: var(--surface-3);
     border-color: rgba(16, 185, 129, 0.25);
     box-shadow:
       0 12px 48px -12px rgba(16, 185, 129, 0.15),
@@ -267,14 +279,14 @@
 
   .stat-card {
     @apply relative overflow-hidden rounded-2xl p-5;
-    background: rgba(15, 23, 42, 0.8);
+    background: var(--surface-2);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--surface-border-strong);
     box-shadow:
       0 8px 40px -8px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-      0 1px 0 rgba(255, 255, 255, 0.05) inset;
+      0 0 0 1px var(--surface-inset) inset,
+      0 1px 0 var(--surface-inset) inset;
   }
 
   .badge {

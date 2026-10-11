@@ -133,7 +133,7 @@ export const BudgetBreakdown: React.FC<BudgetBreakdownProps> = ({
                         type="button"
                         onClick={() => setNewType('expense')}
                         className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
-                          newType === 'expense' ? 'bg-rose-500 text-white' : 'text-slate-400'
+                          newType === 'expense' ? 'bg-rose-500 text-on-solid' : 'text-slate-400'
                         }`}
                       >
                         Expense
@@ -142,7 +142,7 @@ export const BudgetBreakdown: React.FC<BudgetBreakdownProps> = ({
                         type="button"
                         onClick={() => setNewType('income')}
                         className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${
-                          newType === 'income' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'
+                          newType === 'income' ? 'bg-emerald-500 text-on-accent' : 'text-slate-400'
                         }`}
                       >
                         Income

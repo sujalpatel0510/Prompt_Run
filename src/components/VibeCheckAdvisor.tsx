@@ -22,14 +22,10 @@ interface VibeCheckAdvisorProps {
 }
 
 export const VibeCheckAdvisor: React.FC<VibeCheckAdvisorProps> = ({
-  currentDay,
-  liquidBalance,
   metrics,
   subscriptions,
-  transactions,
 }) => {
   const [personality, setPersonality] = useState<'savage' | 'gentle'>('savage');
-  const [customPrompt, setCustomPrompt] = useState('');
   const [chatResponse, setChatResponse] = useState<string | null>(null);
   const prefersReducedMotion = useReducedMotion();
 
@@ -121,7 +117,6 @@ export const VibeCheckAdvisor: React.FC<VibeCheckAdvisorProps> = ({
 
   const handleAskQuick = (question: string) => {
     sounds.playClick();
-    setCustomPrompt(question);
 
     let reply = '';
     const q = question.toLowerCase();
@@ -158,7 +153,7 @@ export const VibeCheckAdvisor: React.FC<VibeCheckAdvisorProps> = ({
               transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
               className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/20"
             >
-              <Bot className="w-5 h-5 text-white" />
+              <Bot className="w-5 h-5 text-on-solid" />
             </motion.div>
             <div>
               <div className="flex items-center gap-2">

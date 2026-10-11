@@ -133,7 +133,7 @@ export const LifeEventModal: React.FC<LifeEventModalProps> = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleChoice(true)}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 hover:from-emerald-400 hover:to-teal-400 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-on-accent font-extrabold text-sm shadow-lg shadow-emerald-500/20 hover:from-emerald-400 hover:to-teal-400 transition-all flex items-center justify-center gap-2"
                 >
                   <Sparkles className="w-4 h-4" />
                   Claim Windfall (+₹{activeEvent.amount})
@@ -143,7 +143,7 @@ export const LifeEventModal: React.FC<LifeEventModalProps> = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handleChoice(true)}
-                  className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm shadow-lg shadow-rose-600/20 transition-all"
+                  className="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-on-solid font-extrabold text-sm shadow-lg shadow-rose-600/20 transition-all"
                 >
                   Pay Obligatory Bill (-₹{activeEvent.amount})
                 </motion.button>

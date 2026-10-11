@@ -1,17 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
   Calendar, 
   CreditCard, 
   Target, 
-  PieChart, 
-  Bot, 
   Layers, 
-  HelpCircle,
-  ExternalLink,
-  ShieldCheck,
-  ChevronRight
 } from 'lucide-react';
 import { 
   Transaction, 
@@ -32,6 +26,7 @@ import { sounds } from './utils/audio';
 
 // UI primitives
 import { CustomCursor } from './components/ui/CustomCursor';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 // Components
 import { Header } from './components/Header';
@@ -42,8 +37,17 @@ import { SubscriptionsVault } from './components/SubscriptionsVault';
 import { SavingsGoals } from './components/SavingsGoals';
 import { BudgetBreakdown } from './components/BudgetBreakdown';
 import { VibeCheckAdvisor } from './components/VibeCheckAdvisor';
-import { LifeEventModal } from './components/LifeEventModal';
-import { ExportModal } from './components/ExportModal';
+
+// Modals are code-split: they mount only when opened, keeping them out of the
+// critical path of the initial render.
+const LifeEventModal = lazy(() =>
+  import('./components/LifeEventModal').then((m) => ({ default: m.LifeEventModal }))
+);
+const ExportModal = lazy(() =>
+  import('./components/ExportModal').then((m) => ({ default: m.ExportModal }))
+);
+
+type AppTab = 'overview' | 'simulator' | 'timeline' | 'commitments' | 'goals';
 
 export function App() {
   const [currentDay, setCurrentDay] = useState<number>(() => {
@@ -115,7 +119,7 @@ export function App() {
   }, [currentDay, transactions, commitments, subscriptions, savingsGoals, soundEnabled]);
 
   // Active view tab: 'overview' | 'simulator' | 'timeline' | 'commitments' | 'goals'
-  const [activeTab, setActiveTab] = useState<'overview' | 'simulator' | 'timeline' | 'commitments' | 'goals'>('overview');
+  const [activeTab, setActiveTab] = useState<AppTab>('overview');
 
 
   // Modals
@@ -380,7 +384,7 @@ export function App() {
       />
 
       {/* Main Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Hero Cockpit */}
         <HeroMetrics
           currentDay={currentDay}
@@ -390,32 +394,35 @@ export function App() {
 
         {/* View Navigation Tabs */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3 overflow-x-auto gap-2">
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900/90 border border-slate-800">
-            {[
+          <div role="tablist" aria-label="Dashboard sections" className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900/90 border border-slate-800">
+            {([
               { id: 'overview', label: 'All-In-One Cockpit', icon: Layers },
               { id: 'simulator', label: 'What-If Simulator', icon: Sparkles, badge: 'Core' },
               { id: 'timeline', label: '30-Day Timeline', icon: Calendar },
               { id: 'commitments', label: 'Subscriptions & Bills', icon: CreditCard },
               { id: 'goals', label: 'Savings Goals', icon: Target },
-            ].map((tab) => {
+            ] as const).map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls="dashboard-panel"
                   onClick={() => {
                     sounds.playClick();
-                    setActiveTab(tab.id as any);
+                    setActiveTab(tab.id);
                   }}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all whitespace-nowrap focus-ring ${
                     isActive
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-on-accent shadow-md shadow-emerald-500/20'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
                   <span>{tab.label}</span>
-                  {tab.badge && (
+                  {'badge' in tab && tab.badge && (
                     <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-extrabold ${isActive ? 'bg-slate-950 text-emerald-400' : 'bg-indigo-500/20 text-indigo-300'}`}>
                       {tab.badge}
                     </span>
@@ -435,11 +442,14 @@ export function App() {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
+            id="dashboard-panel"
+            role="tabpanel"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
+          <ErrorBoundary>
         {activeTab === 'simulator' && (
           <div className="space-y-6">
             <WhatIfSimulator
@@ -582,14 +592,15 @@ export function App() {
             />
           </div>
         )}
+          </ErrorBoundary>
           </motion.div>
         </AnimatePresence>
       </main>
 
       {/* Footer */}
-      <footer className="relative w-full border-t border-slate-800/70 bg-slate-950/70 backdrop-blur-xl py-6 px-4 lg:px-8 mt-12 text-center text-xs text-slate-500 overflow-hidden">
+      <footer className="relative w-full border-t border-slate-800/70 bg-slate-950/70 backdrop-blur-xl py-6 px-4 sm:px-6 lg:px-8 mt-12 text-center text-xs text-slate-500 overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-2/3 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-300">Kuber<span className="text-emerald-400">Z</span> Financial Engine</span>
             <span className="text-slate-600">•</span>
@@ -602,23 +613,29 @@ export function App() {
         </div>
       </footer>
 
-      {/* Modals */}
-      <LifeEventModal
-        isOpen={isLifeEventOpen}
-        onClose={() => setIsLifeEventOpen(false)}
-        onApplyEvent={handleApplyLifeEvent}
-        currentDay={currentDay}
-      />
+      {/* Modals (code-split, mounted on demand) */}
+      <Suspense fallback={null}>
+        {isLifeEventOpen && (
+          <LifeEventModal
+            isOpen={isLifeEventOpen}
+            onClose={() => setIsLifeEventOpen(false)}
+            onApplyEvent={handleApplyLifeEvent}
+            currentDay={currentDay}
+          />
+        )}
 
-      <ExportModal
-        isOpen={isExportOpen}
-        onClose={() => setIsExportOpen(false)}
-        currentDay={currentDay}
-        liquidBalance={liquidBalance}
-        metrics={metrics}
-        transactions={transactions}
-        savingsGoals={savingsGoals}
-      />
+        {isExportOpen && (
+          <ExportModal
+            isOpen={isExportOpen}
+            onClose={() => setIsExportOpen(false)}
+            currentDay={currentDay}
+            liquidBalance={liquidBalance}
+            metrics={metrics}
+            transactions={transactions}
+            savingsGoals={savingsGoals}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

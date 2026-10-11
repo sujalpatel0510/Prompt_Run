@@ -6,7 +6,7 @@ import { Calendar, FastForward, Leaf, Activity } from 'lucide-react';
 import { Transaction, Commitment, Subscription } from '../types/finance';
 import { TOTAL_DAYS, INITIAL_BUDGET } from '../utils/engine';
 import { sounds } from '../utils/audio';
-import { Magnet, ScrollReveal, StaggerContainer } from './ui/Animations';
+import { Magnet, ScrollReveal } from './ui/Animations';
 
 interface Timeline30DaysProps {
   currentDay: number;
@@ -35,7 +35,6 @@ export const Timeline30Days: React.FC<Timeline30DaysProps> = ({
   subscriptions,
   liquidBalance,
   projectedEOMBalance,
-  safeDailyAllowance,
 }) => {
   const prefersReducedMotion = useReducedMotion();
   const daysArray = useMemo(() => Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1), []);
@@ -66,7 +65,7 @@ export const Timeline30Days: React.FC<Timeline30DaysProps> = ({
     return changes;
   }, [transactions, commitments, subscriptions]);
 
-  const { historyPath, projectPath, historicalBalances, zeroLineY } = useMemo(() => {
+  const { historyPath, projectPath, zeroLineY } = useMemo(() => {
     let running = INITIAL_BUDGET;
     const historicalBalances: number[] = [INITIAL_BUDGET];
     for (let d = 1; d <= currentDay; d++) {

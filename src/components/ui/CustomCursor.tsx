@@ -61,6 +61,7 @@ export const CustomCursor: React.FC = () => {
     const noHover = window.matchMedia('(hover: none)').matches;
     if (!finePointer || noHover || prefersReducedMotion) return;
 
+    // eslint-disable-next-line react/set-state-in-effect
     setEnabled(true);
     document.body.dataset.customCursor = 'true';
 

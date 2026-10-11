@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { CreditCard, Check, Scissors, Wallet, AlertCircle, Flame } from 'lucide-react';
+import { CreditCard, Check, Scissors, AlertCircle, Flame } from 'lucide-react';
 import { Subscription, Commitment } from '../types/finance';
 import { sounds } from '../utils/audio';
-import { Magnet, ScrollReveal, TiltCard } from './ui/Animations';
+import { Magnet, ScrollReveal } from './ui/Animations';
 
 interface SubscriptionsVaultProps {
   currentDay: number;

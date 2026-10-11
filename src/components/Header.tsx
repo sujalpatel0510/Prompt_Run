@@ -12,8 +12,11 @@ import {
   Share2,
   ChevronDown,
   Check,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { sounds } from '../utils/audio';
+import { useTheme } from '../theme/ThemeProvider';
 import { Magnet } from './ui/Animations';
 
 interface HeaderProps {
@@ -48,6 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [activeScenario, setActiveScenario] = useState<string>('baseline');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -55,8 +59,15 @@ export const Header: React.FC<HeaderProps> = ({
         setScenarioOpen(false);
       }
     };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setScenarioOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, []);
 
   const handleSelectScenario = (id: (typeof SCENARIOS)[number]['id']) => {
@@ -76,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
       transition={{ type: 'spring', stiffness: 260, damping: 30 }}
       className="sticky top-0 z-40 w-full backdrop-blur-xl bg-slate-950/70 border-b border-slate-800/70 px-4 lg:px-8 py-3.5"
     >
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="w-full flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Brand & Gen-Z Tag */}
         <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
           <Magnet padding={12} strength={5}>
@@ -86,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
                 transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                 className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-cyan-400 flex items-center justify-center shadow-lg shadow-emerald-500/25 ring-1 ring-white/20"
               >
-                <Zap className="w-5 h-5 text-slate-950 fill-slate-950" />
+                <Zap className="w-5 h-5 text-on-accent fill-[#04121f]" />
               </motion.div>
             </div>
           </Magnet>
@@ -233,6 +244,34 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Share2 className="w-3.5 h-3.5 text-cyan-400" />
             <span className="hidden sm:inline">Report</span>
+          </button>
+
+          {/* Theme Toggle */}
+          <button
+            onClick={() => {
+              sounds.playClick();
+              toggleTheme();
+            }}
+            className="inline-flex items-center justify-center p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-all focus-ring"
+            title={resolvedTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            aria-label={resolvedTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={resolvedTheme}
+                initial={prefersReducedMotion ? false : { rotate: -90, opacity: 0, scale: 0.6 }}
+                animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { rotate: 90, opacity: 0, scale: 0.6 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-center justify-center"
+              >
+                {resolvedTheme === 'dark' ? (
+                  <Sun className="w-4 h-4 text-amber-400" />
+                ) : (
+                  <Moon className="w-4 h-4 text-indigo-400" />
+                )}
+              </motion.span>
+            </AnimatePresence>
           </button>
 
           {/* Sound Toggle */}
