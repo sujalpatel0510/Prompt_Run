@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, 
   Calendar, 
@@ -28,6 +29,9 @@ import {
 } from './data/initialData';
 import { calculateMetrics, INITIAL_BUDGET } from './utils/engine';
 import { sounds } from './utils/audio';
+
+// UI primitives
+import { CustomCursor } from './components/ui/CustomCursor';
 
 // Components
 import { Header } from './components/Header';
@@ -352,7 +356,17 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-300">
+    <div className="relative isolate min-h-screen text-slate-100 flex flex-col font-sans selection:bg-emerald-500/30 selection:text-emerald-300">
+      <CustomCursor />
+
+      {/* Ambient background layers */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-40 -left-40 w-[36rem] h-[36rem] rounded-full bg-emerald-600/10 blur-[130px]" />
+        <div className="absolute top-1/3 -right-40 w-[32rem] h-[32rem] rounded-full bg-cyan-600/10 blur-[130px]" />
+        <div className="absolute -bottom-40 left-1/3 w-[30rem] h-[30rem] rounded-full bg-purple-600/10 blur-[130px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(16,185,129,0.08),transparent_55%)]" />
+      </div>
+
       {/* Top Application Header */}
       <Header
         currentDay={currentDay}
@@ -418,8 +432,16 @@ export function App() {
         </div>
 
         {/* Tab Content Display */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          >
         {activeTab === 'simulator' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6">
             <WhatIfSimulator
               currentDay={currentDay}
               transactions={transactions}
@@ -439,7 +461,7 @@ export function App() {
         )}
 
         {activeTab === 'timeline' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6">
             <Timeline30Days
               currentDay={currentDay}
               onSelectDay={setCurrentDay}
@@ -461,7 +483,7 @@ export function App() {
         )}
 
         {activeTab === 'commitments' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6">
             <SubscriptionsVault
               currentDay={currentDay}
               subscriptions={subscriptions}
@@ -481,7 +503,7 @@ export function App() {
         )}
 
         {activeTab === 'goals' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6">
             <SavingsGoals
               savingsGoals={savingsGoals}
               liquidBalance={liquidBalance}
@@ -500,7 +522,7 @@ export function App() {
         )}
 
         {activeTab === 'overview' && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6">
             {/* The Flagship What-If Simulator right upfront */}
             <WhatIfSimulator
               currentDay={currentDay}
@@ -560,18 +582,22 @@ export function App() {
             />
           </div>
         )}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-slate-800/80 bg-slate-950/90 py-6 px-4 lg:px-8 mt-12 text-center text-xs text-slate-500">
+      <footer className="relative w-full border-t border-slate-800/70 bg-slate-950/70 backdrop-blur-xl py-6 px-4 lg:px-8 mt-12 text-center text-xs text-slate-500 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px w-2/3 bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-300">KuberZ Financial Engine</span>
-            <span>•</span>
+            <span className="font-bold text-slate-300">Kuber<span className="text-emerald-400">Z</span> Financial Engine</span>
+            <span className="text-slate-600">•</span>
             <span>Built for PROMPT RUN 2026 Hackathon</span>
           </div>
-          <div className="text-slate-400">
-            Automated Evaluation Ready • FAIE High Performance • React 19 + TypeScript + Tailwind
+          <div className="flex items-center gap-2 text-slate-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Automated Evaluation Ready • React 19 + TypeScript + Tailwind</span>
           </div>
         </div>
       </footer>
